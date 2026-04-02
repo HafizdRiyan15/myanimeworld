@@ -398,8 +398,46 @@ const anime = [
   },
 ];
 
+// ─── Anime ── Tambahan dari Muse Asia ─────────────────────────────────────────
+anime.push({
+  id: 'a19',
+  title: 'Budak Korps Elite Kota Sihir',
+  slug: 'budak-korps-elite-kota-sihir',
+  description: 'Seorang pria yang tiba-tiba terlempar ke dunia fantasi dan dipaksa bekerja sebagai budak di perusahaan sihir yang kejam. Ia bertekad untuk naik pangkat dan membalas dendam kepada sistem yang mengindasnya.',
+  coverImage: 'https://picsum.photos/seed/meikyuu/400/600',
+  bannerImage: 'https://picsum.photos/seed/meikyuu-banner/1280/400',
+  trailer: 'https://www.youtube.com/embed/7n6jG1Hiofs',
+  genres: ['Fantasy', 'Comedy', 'Adventure'],
+  year: 2021,
+  status: 'completed',
+  rating: 4.2,
+  totalRatings: 3200,
+  views: 1200000,
+  popularity: 16,
+  episodes: ['ep-meikyuu-01'],
+  studio: 'Tenma Kobo',
+  director: 'Shin Oonuma',
+  tags: ['isekai', 'magic', 'company', 'comedy'],
+});
+
 // ─── Episodes ─────────────────────────────────────────────────────────────────
 const episodes = [
+  {
+    id: 'ep-meikyuu-01',
+    animeId: 'a19',
+    number: 1,
+    title: 'Episode 01',
+    description: 'Seorang pria terlempar ke dunia sihir dan langsung dipaksa bekerja sebagai budak di Korps Elite Kota Sihir.',
+    thumbnail: 'https://img.youtube.com/vi/7n6jG1Hiofs/maxresdefault.jpg',
+    duration: 1440,
+    youtubeId: '7n6jG1Hiofs',
+    streamUrl: '',
+    qualities: {},
+    subtitles: [{ lang: 'id', label: 'Indonesia', url: '' }],
+    airDate: '2021-07-09',
+    views: 420000,
+    isFree: true,
+  },
   {
     id: 'ep1',
     animeId: 'a1',

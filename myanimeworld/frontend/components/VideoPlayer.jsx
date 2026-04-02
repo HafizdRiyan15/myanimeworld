@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 
 /**
- * Custom HTML5 video player with HLS support via hls.js
- * Features: play/pause, volume, fullscreen, quality selection, subtitles, progress tracking
+ * Video player yang support dua mode:
+ * 1. YouTube embed (youtubeId)
+ * 2. HLS stream (streamUrl)
  */
 export default function VideoPlayer({ episode, onEnded, onProgress }) {
   const videoRef = useRef(null);
@@ -13,20 +14,18 @@ export default function VideoPlayer({ episode, onEnded, onProgress }) {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [quality, setQuality] = useState('720p');
-  const [subtitle, setSubtitle] = useState('');
   const [showControls, setShowControls] = useState(true);
   const controlsTimer = useRef(null);
 
+  const isYoutube = !!episode?.youtubeId;
   const streamUrl = episode?.qualities?.[quality] || episode?.streamUrl;
 
-  // Initialize HLS
+  // Init HLS player (only for non-YouTube)
   useEffect(() => {
-    if (!videoRef.current || !streamUrl) return;
+    if (isYoutube || !videoRef.current || !streamUrl) return;
 
     const initPlayer = async () => {
-      // Dynamically import hls.js (client-side only)
       const Hls = (await import('hls.js')).default;
-
       if (Hls.isSupported()) {
         if (hlsRef.current) hlsRef.current.destroy();
         const hls = new Hls();
@@ -38,7 +37,6 @@ export default function VideoPlayer({ episode, onEnded, onProgress }) {
           setPlaying(true);
         });
       } else if (videoRef.current.canPlayType('application/vnd.apple.mpegurl')) {
-        // Safari native HLS
         videoRef.current.src = streamUrl;
         videoRef.current.play().catch(() => {});
         setPlaying(true);
@@ -47,17 +45,7 @@ export default function VideoPlayer({ episode, onEnded, onProgress }) {
 
     initPlayer();
     return () => { if (hlsRef.current) hlsRef.current.destroy(); };
-  }, [streamUrl]);
-
-  // Quality change — reload HLS with new URL
-  useEffect(() => {
-    if (hlsRef.current && videoRef.current) {
-      const time = videoRef.current.currentTime;
-      hlsRef.current.loadSource(episode.qualities[quality] || episode.streamUrl);
-      videoRef.current.currentTime = time;
-      if (playing) videoRef.current.play().catch(() => {});
-    }
-  }, [quality]);
+  }, [streamUrl, isYoutube]);
 
   const togglePlay = () => {
     if (!videoRef.current) return;
@@ -103,6 +91,22 @@ export default function VideoPlayer({ episode, onEnded, onProgress }) {
     controlsTimer.current = setTimeout(() => setShowControls(false), 3000);
   };
 
+  // ── YouTube mode ─────────────────────────────────────────────────────────────
+  if (isYoutube) {
+    return (
+      <div className="relative bg-black rounded-lg overflow-hidden w-full aspect-video">
+        <iframe
+          src={`https://www.youtube.com/embed/${episode.youtubeId}?autoplay=1&rel=0&modestbranding=1`}
+          className="w-full h-full"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+          allowFullScreen
+          title={episode.title}
+        />
+      </div>
+    );
+  }
+
+  // ── HLS mode ──────────────────────────────────────────────────────────────────
   return (
     <div
       className="relative bg-black rounded-lg overflow-hidden group"
@@ -120,85 +124,40 @@ export default function VideoPlayer({ episode, onEnded, onProgress }) {
         onEnded={onEnded}
         crossOrigin="anonymous"
       >
-        {/* Subtitle tracks */}
         {episode?.subtitles?.map((sub) => (
-          <track
-            key={sub.lang}
-            kind="subtitles"
-            src={sub.url}
-            srcLang={sub.lang}
-            label={sub.label}
-            default={sub.lang === subtitle}
-          />
+          <track key={sub.lang} kind="subtitles" src={sub.url} srcLang={sub.lang} label={sub.label} />
         ))}
       </video>
 
       {/* Controls overlay */}
       <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
-        {/* Progress bar */}
-        <input
-          type="range"
-          min={0}
-          max={duration || 0}
-          value={currentTime}
-          onChange={handleSeek}
-          className="w-full h-1 accent-brand cursor-pointer mb-3"
-        />
+        <input type="range" min={0} max={duration || 0} value={currentTime}
+          onChange={handleSeek} className="w-full h-1 accent-brand cursor-pointer mb-3" />
 
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            {/* Play/Pause */}
             <button onClick={togglePlay} className="text-white hover:text-brand transition text-lg">
               {playing ? '⏸' : '▶'}
             </button>
-
-            {/* Volume */}
             <button onClick={toggleMute} className="text-white text-sm">{muted ? '🔇' : '🔊'}</button>
-            <input
-              type="range" min={0} max={1} step={0.05} value={muted ? 0 : volume}
-              onChange={handleVolumeChange}
-              className="w-20 h-1 accent-brand cursor-pointer"
-            />
-
-            {/* Time */}
+            <input type="range" min={0} max={1} step={0.05} value={muted ? 0 : volume}
+              onChange={handleVolumeChange} className="w-20 h-1 accent-brand cursor-pointer" />
             <span className="text-white text-xs">{formatTime(currentTime)} / {formatTime(duration)}</span>
           </div>
-
           <div className="flex items-center gap-3">
-            {/* Subtitle selector */}
-            {episode?.subtitles?.length > 0 && (
-              <select
-                value={subtitle}
-                onChange={(e) => setSubtitle(e.target.value)}
-                className="bg-black/60 text-white text-xs border border-gray-600 rounded px-2 py-1"
-              >
-                <option value="">No Subtitles</option>
-                {episode.subtitles.map((s) => (
-                  <option key={s.lang} value={s.lang}>{s.label}</option>
-                ))}
-              </select>
-            )}
-
-            {/* Quality selector */}
             {episode?.qualities && (
-              <select
-                value={quality}
-                onChange={(e) => setQuality(e.target.value)}
-                className="bg-black/60 text-white text-xs border border-gray-600 rounded px-2 py-1"
-              >
+              <select value={quality} onChange={(e) => setQuality(e.target.value)}
+                className="bg-black/60 text-white text-xs border border-gray-600 rounded px-2 py-1">
                 {Object.keys(episode.qualities).map((q) => (
                   <option key={q} value={q}>{q}</option>
                 ))}
               </select>
             )}
-
-            {/* Fullscreen */}
             <button onClick={toggleFullscreen} className="text-white hover:text-brand transition text-sm">⛶</button>
           </div>
         </div>
       </div>
 
-      {/* Click to play/pause */}
       <div className="absolute inset-0 cursor-pointer" onClick={togglePlay} />
     </div>
   );
