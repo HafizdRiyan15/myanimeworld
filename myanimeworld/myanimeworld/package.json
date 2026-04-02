@@ -1,0 +1,12 @@
+{
+  "name": "myanimeworld",
+  "version": "1.0.0",
+  "scripts": {
+    "install": "cd myanimeworld/backend && npm install",
+    "start": "cd myanimeworld/backend && node server.js",
+    "build": "cd myanimeworld/backend && npm install"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}
