@@ -12,11 +12,11 @@ export default function Home() {
   const [featured, setFeatured] = useState(null);
 
   useEffect(() => {
-    getAnime({ sort: 'popularity', limit: 8 }).then((r) => {
+    getAnime({ sort: 'popularity', limit: 20 }).then((r) => {
       setPopular(r.data.results);
       setFeatured(r.data.results[0]);
     });
-    getAnime({ sort: 'rating', limit: 6 }).then((r) => setTopRated(r.data.results));
+    getAnime({ sort: 'rating', limit: 20 }).then((r) => setTopRated(r.data.results));
     if (user) {
       getRecommendations().then((r) => setRecs(r.data)).catch(() => {});
     }

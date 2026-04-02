@@ -16,7 +16,7 @@ export default function Browse() {
   const [selectedGenre, setSelectedGenre] = useState(genre || '');
   const [year, setYear] = useState(initYear);
   const [loading, setLoading] = useState(false);
-  const LIMIT = 12;
+  const LIMIT = 20;
 
   useEffect(() => { getGenres().then((r) => setGenres(r.data)); }, []);
 
