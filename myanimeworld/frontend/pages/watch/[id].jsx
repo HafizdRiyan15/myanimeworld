@@ -63,16 +63,7 @@ export default function Watch() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
       {/* Player */}
-      <div className="relative">
-        <VideoPlayer episode={episode} onProgress={handleProgress} onEnded={handleEnded} />
-        {/* Rotate button for mobile */}
-        <button
-          onClick={toggleLandscape}
-          className="md:hidden absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-lg z-20 flex items-center gap-1"
-        >
-          🔄 Putar Layar
-        </button>
-      </div>
+      <VideoPlayer episode={episode} onProgress={handleProgress} onEnded={handleEnded} />
 
       {/* Episode info */}
       <div className="mt-5">
