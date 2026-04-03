@@ -75,8 +75,18 @@ export default function VideoPlayer({ episode, onEnded, onProgress }) {
 
   const toggleFullscreen = () => {
     const container = videoRef.current?.parentElement?.parentElement;
-    if (!document.fullscreenElement) container?.requestFullscreen();
-    else document.exitFullscreen();
+    if (!document.fullscreenElement) {
+      container?.requestFullscreen();
+      // Request landscape on mobile
+      if (screen.orientation?.lock) {
+        screen.orientation.lock('landscape').catch(() => {});
+      }
+    } else {
+      document.exitFullscreen();
+      if (screen.orientation?.unlock) {
+        screen.orientation.unlock();
+      }
+    }
   };
 
   const formatTime = (s) => {
@@ -93,8 +103,21 @@ export default function VideoPlayer({ episode, onEnded, onProgress }) {
 
   // ── YouTube mode ─────────────────────────────────────────────────────────────
   if (isYoutube) {
+    const handleYTFullscreen = () => {
+      const container = document.getElementById('yt-container');
+      if (!document.fullscreenElement) {
+        container?.requestFullscreen();
+        if (screen.orientation?.lock) {
+          screen.orientation.lock('landscape').catch(() => {});
+        }
+      } else {
+        document.exitFullscreen();
+        if (screen.orientation?.unlock) screen.orientation.unlock();
+      }
+    };
+
     return (
-      <div className="relative bg-black rounded-lg overflow-hidden w-full aspect-video">
+      <div id="yt-container" className="relative bg-black rounded-lg overflow-hidden w-full aspect-video group">
         <iframe
           src={`https://www.youtube.com/embed/${episode.youtubeId}?autoplay=1&rel=0&modestbranding=1`}
           className="w-full h-full"
@@ -102,6 +125,13 @@ export default function VideoPlayer({ episode, onEnded, onProgress }) {
           allowFullScreen
           title={episode.title}
         />
+        {/* Fullscreen button overlay for mobile */}
+        <button
+          onClick={handleYTFullscreen}
+          className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 md:hidden transition"
+        >
+          ⛶ Layar Penuh
+        </button>
       </div>
     );
   }
