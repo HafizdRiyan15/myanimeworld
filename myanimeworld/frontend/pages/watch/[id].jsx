@@ -12,7 +12,18 @@ export default function Watch() {
 
   const [episode, setEpisode] = useState(null);
   const [error, setError] = useState('');
-  const [nextEpId, setNextEpId] = useState(null);
+  const [isLandscape, setIsLandscape] = useState(false);
+
+  const toggleLandscape = () => {
+    if (!isLandscape) {
+      if (screen.orientation?.lock) {
+        screen.orientation.lock('landscape').catch(() => {});
+      }
+    } else {
+      if (screen.orientation?.unlock) screen.orientation.unlock();
+    }
+    setIsLandscape(!isLandscape);
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -20,6 +31,8 @@ export default function Watch() {
       .then((r) => setEpisode(r.data))
       .catch((err) => setError(err.response?.data?.error || 'Failed to load episode'));
   }, [id]);
+
+  const [nextEpId, setNextEpId] = useState(null);
 
   const handleProgress = (time) => {
     // Track every 30 seconds
@@ -50,7 +63,16 @@ export default function Watch() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
       {/* Player */}
-      <VideoPlayer episode={episode} onProgress={handleProgress} onEnded={handleEnded} />
+      <div className="relative">
+        <VideoPlayer episode={episode} onProgress={handleProgress} onEnded={handleEnded} />
+        {/* Rotate button for mobile */}
+        <button
+          onClick={toggleLandscape}
+          className="md:hidden absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-lg z-20 flex items-center gap-1"
+        >
+          🔄 Putar Layar
+        </button>
+      </div>
 
       {/* Episode info */}
       <div className="mt-5">

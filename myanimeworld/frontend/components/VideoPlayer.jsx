@@ -103,35 +103,15 @@ export default function VideoPlayer({ episode, onEnded, onProgress }) {
 
   // ── YouTube mode ─────────────────────────────────────────────────────────────
   if (isYoutube) {
-    const handleYTFullscreen = () => {
-      const container = document.getElementById('yt-container');
-      if (!document.fullscreenElement) {
-        container?.requestFullscreen();
-        if (screen.orientation?.lock) {
-          screen.orientation.lock('landscape').catch(() => {});
-        }
-      } else {
-        document.exitFullscreen();
-        if (screen.orientation?.unlock) screen.orientation.unlock();
-      }
-    };
-
     return (
-      <div id="yt-container" className="relative bg-black rounded-lg overflow-hidden w-full aspect-video group">
+      <div className="relative bg-black rounded-lg overflow-hidden w-full aspect-video">
         <iframe
-          src={`https://www.youtube.com/embed/${episode.youtubeId}?autoplay=1&rel=0&modestbranding=1`}
+          src={`https://www.youtube.com/embed/${episode.youtubeId}?autoplay=1&rel=0&modestbranding=1&playsinline=0`}
           className="w-full h-full"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
           allowFullScreen
           title={episode.title}
         />
-        {/* Fullscreen button overlay for mobile */}
-        <button
-          onClick={handleYTFullscreen}
-          className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 md:hidden transition"
-        >
-          ⛶ Layar Penuh
-        </button>
       </div>
     );
   }
