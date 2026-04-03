@@ -102,7 +102,7 @@ const anime = [
     slug: 'attack-on-titan',
     description: 'Humanity lives inside cities surrounded by enormous walls due to the Titans, gigantic humanoid beings who devour humans seemingly without reason. Eren Yeager vows to exterminate every Titan after his hometown is destroyed.',
     coverImage: 'https://cdn.myanimelist.net/images/anime/10/47347.jpg',
-    bannerImage: 'https://picsum.photos/seed/aot-banner/1280/400',
+    bannerImage: 'https://cdn.myanimelist.net/images/anime/10/47347l.jpg',
     trailer: 'https://www.youtube.com/embed/MGRm4IzK1SQ',
     genres: ['Action', 'Drama', 'Fantasy', 'Mystery'],
     year: 2013,

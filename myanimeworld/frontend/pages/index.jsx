@@ -53,12 +53,24 @@ export default function Home() {
         <div className="relative h-[520px] flex items-end overflow-hidden">
           {/* Background image with fade transition */}
           <div
-            className="absolute inset-0 bg-cover bg-center transition-opacity duration-500"
-            style={{
-              backgroundImage: `url(${featured.bannerImage || featured.coverImage})`,
-              opacity: fade ? 1 : 0,
-            }}
-          />
+            className="absolute inset-0 transition-opacity duration-500"
+            style={{ opacity: fade ? 1 : 0 }}
+          >
+            {/* Blurred cover as background */}
+            <div
+              className="absolute inset-0 bg-cover bg-center scale-110"
+              style={{
+                backgroundImage: `url(${featured.coverImage})`,
+                filter: 'blur(20px)',
+                transform: 'scale(1.1)',
+              }}
+            />
+            {/* Clear cover on the right side */}
+            <div
+              className="absolute right-0 top-0 bottom-0 w-1/3 bg-cover bg-center hidden md:block"
+              style={{ backgroundImage: `url(${featured.coverImage})` }}
+            />
+          </div>
           <div className="absolute inset-0 bg-gradient-to-t from-dark via-dark/60 to-transparent" />
 
           {/* Content */}
