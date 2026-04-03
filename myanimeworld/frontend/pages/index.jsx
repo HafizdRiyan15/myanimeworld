@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { getAnime, getRecommendations } from '../lib/api';
 import AnimeCard from '../components/AnimeCard';
@@ -9,37 +9,75 @@ export default function Home() {
   const [popular, setPopular] = useState([]);
   const [topRated, setTopRated] = useState([]);
   const [recs, setRecs] = useState([]);
-  const [featured, setFeatured] = useState(null);
+  const [heroList, setHeroList] = useState([]);
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [fade, setFade] = useState(true);
+  const timerRef = useRef(null);
 
   useEffect(() => {
-    getAnime({ sort: 'popularity', limit: 20 }).then((r) => {
-      setPopular(r.data.results);
-      setFeatured(r.data.results[0]);
+    getAnime({ sort: 'popularity', limit: 20 }).then((r) => setPopular(r.data.results));
+    getAnime({ sort: 'rating', limit: 20 }).then((r) => {
+      setTopRated(r.data.results);
+      setHeroList(r.data.results.slice(0, 10));
     });
-    getAnime({ sort: 'rating', limit: 20 }).then((r) => setTopRated(r.data.results));
     if (user) {
       getRecommendations().then((r) => setRecs(r.data)).catch(() => {});
     }
   }, [user]);
 
+  // Auto-slide every 5 seconds
+  useEffect(() => {
+    if (heroList.length === 0) return;
+    timerRef.current = setInterval(() => {
+      setFade(false);
+      setTimeout(() => {
+        setHeroIndex((i) => (i + 1) % heroList.length);
+        setFade(true);
+      }, 400);
+    }, 5000);
+    return () => clearInterval(timerRef.current);
+  }, [heroList]);
+
+  const goToSlide = (i) => {
+    setFade(false);
+    setTimeout(() => { setHeroIndex(i); setFade(true); }, 400);
+    clearInterval(timerRef.current);
+  };
+
+  const featured = heroList[heroIndex];
+
   return (
     <main>
-      {/* Hero Banner */}
+      {/* Hero Banner Slideshow */}
       {featured && (
-        <div
-          className="relative h-[500px] flex items-end"
-          style={{ backgroundImage: `url(${featured.bannerImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-        >
+        <div className="relative h-[520px] flex items-end overflow-hidden">
+          {/* Background image with fade transition */}
+          <div
+            className="absolute inset-0 bg-cover bg-center transition-opacity duration-500"
+            style={{
+              backgroundImage: `url(${featured.bannerImage || featured.coverImage})`,
+              opacity: fade ? 1 : 0,
+            }}
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-dark via-dark/60 to-transparent" />
-          <div className="relative z-10 max-w-7xl mx-auto px-6 pb-12 w-full">
+
+          {/* Content */}
+          <div className={`relative z-10 max-w-7xl mx-auto px-6 pb-10 w-full transition-opacity duration-500 ${fade ? 'opacity-100' : 'opacity-0'}`}>
             <div className="flex flex-wrap gap-2 mb-3">
               {featured.genres.map((g) => (
                 <span key={g} className="text-xs bg-brand/80 text-white px-3 py-1 rounded-full">{g}</span>
               ))}
             </div>
-            <h1 className="text-4xl font-bold text-white mb-2">{featured.title}</h1>
+            <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">{featured.title}</h1>
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-yellow-400 font-bold">★ {featured.rating}</span>
+              <span className="text-gray-400 text-sm">{featured.year}</span>
+              <span className={`text-xs px-2 py-0.5 rounded-full ${featured.status === 'ongoing' ? 'bg-green-600 text-white' : 'bg-gray-600 text-gray-200'}`}>
+                {featured.status}
+              </span>
+            </div>
             <p className="text-gray-300 max-w-xl text-sm mb-5 line-clamp-2">{featured.description}</p>
-            <div className="flex gap-3">
+            <div className="flex gap-3 mb-6">
               <Link href={`/anime/${featured.slug}`}
                 className="bg-brand hover:bg-brand-dark text-white px-6 py-2.5 rounded-full font-medium transition">
                 ▶ Watch Now
@@ -49,7 +87,26 @@ export default function Home() {
                 More Info
               </Link>
             </div>
+
+            {/* Dot indicators */}
+            <div className="flex gap-2">
+              {heroList.map((_, i) => (
+                <button key={i} onClick={() => goToSlide(i)}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${i === heroIndex ? 'w-8 bg-brand' : 'w-3 bg-gray-500 hover:bg-gray-300'}`}
+                />
+              ))}
+            </div>
           </div>
+
+          {/* Prev/Next arrows */}
+          <button onClick={() => goToSlide((heroIndex - 1 + heroList.length) % heroList.length)}
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-black/40 hover:bg-black/70 text-white w-10 h-10 rounded-full flex items-center justify-center transition">
+            ‹
+          </button>
+          <button onClick={() => goToSlide((heroIndex + 1) % heroList.length)}
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-black/40 hover:bg-black/70 text-white w-10 h-10 rounded-full flex items-center justify-center transition">
+            ›
+          </button>
         </div>
       )}
 
